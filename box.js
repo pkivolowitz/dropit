@@ -10,50 +10,53 @@ class Box
 
 	Initialize(width = 1, height = 1)
 	{
+		this.width = width;
+		this.height = height;
+		
 		width /= 2.0;
 		height /= 2.0;
-		var inner_width = width * 0.1;
-		var inner_height = height * 0.1;
+		var inner_width = width * 0.2;
+		var inner_height = height * 0.2;
 		inner_width = inner_height = Math.min(inner_width, inner_height);
 
 		this.lvrts_buffer = gl.createBuffer();
 		this.tvrts_buffer = gl.createBuffer();
 
 		// The frame - upper edge.
-		this.PushVertex(this.lvrts, vec3.fromValues(-width,  height, 0));
-		this.PushVertex(this.lvrts, vec3.fromValues( width,  height, 0));
-		this.PushVertex(this.lvrts, vec3.fromValues( width,  height - inner_height, 0));
-		this.PushVertex(this.lvrts, vec3.fromValues(-width,  height, 0));
-		this.PushVertex(this.lvrts, vec3.fromValues( width,  height - inner_height, 0));
-		this.PushVertex(this.lvrts, vec3.fromValues(-width,  height - inner_height, 0));
+		PushVertex(this.lvrts, vec3.fromValues(-width,  height, 0));
+		PushVertex(this.lvrts, vec3.fromValues( width,  height, 0));
+		PushVertex(this.lvrts, vec3.fromValues( width,  height - inner_height, 0));
+		PushVertex(this.lvrts, vec3.fromValues(-width,  height, 0));
+		PushVertex(this.lvrts, vec3.fromValues( width,  height - inner_height, 0));
+		PushVertex(this.lvrts, vec3.fromValues(-width,  height - inner_height, 0));
 		// The frame - lower edge.
-		this.PushVertex(this.lvrts, vec3.fromValues(-width,  -height + inner_height, 0));
-		this.PushVertex(this.lvrts, vec3.fromValues( width,  -height + inner_height, 0));
-		this.PushVertex(this.lvrts, vec3.fromValues( width,  -height, 0));
-		this.PushVertex(this.lvrts, vec3.fromValues(-width,  -height + inner_height, 0));
-		this.PushVertex(this.lvrts, vec3.fromValues( width,  -height, 0));
-		this.PushVertex(this.lvrts, vec3.fromValues(-width,  -height, 0));
+		PushVertex(this.lvrts, vec3.fromValues(-width,  -height + inner_height, 0));
+		PushVertex(this.lvrts, vec3.fromValues( width,  -height + inner_height, 0));
+		PushVertex(this.lvrts, vec3.fromValues( width,  -height, 0));
+		PushVertex(this.lvrts, vec3.fromValues(-width,  -height + inner_height, 0));
+		PushVertex(this.lvrts, vec3.fromValues( width,  -height, 0));
+		PushVertex(this.lvrts, vec3.fromValues(-width,  -height, 0));
 		// The frame - right edge.
-		this.PushVertex(this.lvrts, vec3.fromValues( width - inner_width,  height - inner_height, 0));
-		this.PushVertex(this.lvrts, vec3.fromValues( width,  height - inner_height, 0));
-		this.PushVertex(this.lvrts, vec3.fromValues( width,  -height + inner_height, 0));
-		this.PushVertex(this.lvrts, vec3.fromValues( width - inner_width,  height - inner_height, 0));
-		this.PushVertex(this.lvrts, vec3.fromValues( width,  -height + inner_height, 0));
-		this.PushVertex(this.lvrts, vec3.fromValues( width - inner_width,  -height + inner_height, 0));
+		PushVertex(this.lvrts, vec3.fromValues( width - inner_width,  height - inner_height, 0));
+		PushVertex(this.lvrts, vec3.fromValues( width,  height - inner_height, 0));
+		PushVertex(this.lvrts, vec3.fromValues( width,  -height + inner_height, 0));
+		PushVertex(this.lvrts, vec3.fromValues( width - inner_width,  height - inner_height, 0));
+		PushVertex(this.lvrts, vec3.fromValues( width,  -height + inner_height, 0));
+		PushVertex(this.lvrts, vec3.fromValues( width - inner_width,  -height + inner_height, 0));
 		// The frame - left edge.
-		this.PushVertex(this.lvrts, vec3.fromValues(-width,  height - inner_height, 0));
-		this.PushVertex(this.lvrts, vec3.fromValues(-width + inner_width,  height - inner_height, 0));
-		this.PushVertex(this.lvrts, vec3.fromValues(-width + inner_width,  -height + inner_height, 0));
-		this.PushVertex(this.lvrts, vec3.fromValues(-width,  height - inner_height, 0));
-		this.PushVertex(this.lvrts, vec3.fromValues(-width + inner_width,  -height + inner_height, 0));
-		this.PushVertex(this.lvrts, vec3.fromValues(-width,  -height + inner_height, 0));
+		PushVertex(this.lvrts, vec3.fromValues(-width,  height - inner_height, 0));
+		PushVertex(this.lvrts, vec3.fromValues(-width + inner_width,  height - inner_height, 0));
+		PushVertex(this.lvrts, vec3.fromValues(-width + inner_width,  -height + inner_height, 0));
+		PushVertex(this.lvrts, vec3.fromValues(-width,  height - inner_height, 0));
+		PushVertex(this.lvrts, vec3.fromValues(-width + inner_width,  -height + inner_height, 0));
+		PushVertex(this.lvrts, vec3.fromValues(-width,  -height + inner_height, 0));
 		// The background.
-		this.PushVertex(this.tvrts, vec3.fromValues(-width,  height, 0));
-		this.PushVertex(this.tvrts, vec3.fromValues( width,  height, 0));
-		this.PushVertex(this.tvrts, vec3.fromValues( width, -height, 0));
-		this.PushVertex(this.tvrts, vec3.fromValues(-width,  height, 0));
-		this.PushVertex(this.tvrts, vec3.fromValues( width, -height, 0));
-		this.PushVertex(this.tvrts, vec3.fromValues(-width, -height, 0));
+		PushVertex(this.tvrts, vec3.fromValues(-width,  height, 0));
+		PushVertex(this.tvrts, vec3.fromValues( width,  height, 0));
+		PushVertex(this.tvrts, vec3.fromValues( width, -height, 0));
+		PushVertex(this.tvrts, vec3.fromValues(-width,  height, 0));
+		PushVertex(this.tvrts, vec3.fromValues( width, -height, 0));
+		PushVertex(this.tvrts, vec3.fromValues(-width, -height, 0));
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.lvrts_buffer);
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.lvrts), gl.STATIC_DRAW);
@@ -61,11 +64,6 @@ class Box
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.tvrts), gl.STATIC_DRAW);
 		gl.bindBuffer(gl.ARRAY_BUFFER, null);
 		this.InitializeShader();				
-	}
-
-	PushVertex(a, v)
-	{
-		a.push(v[0], v[1], v[2]);
 	}
 
 	InitializeShader()
