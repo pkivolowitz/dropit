@@ -51,9 +51,8 @@ function DrawScene(now)
 	var p = vec4.create();
 	var c = vec2.create();
 
-	ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-	ctx.textAlign = "left";
-	ctx.fillText("Drop It! v 0.2", 20, 50);
+	var top_margin = 150;
+	ctx.clearRect(0, top_margin, ctx.canvas.width, ctx.canvas.height - top_margin);
 
 	gl.clearColor(0.1, 0.1, 0.1, 1.0);
 	gl.clear(gl.COLOR_BUFFER_BIT);
@@ -93,7 +92,7 @@ function DrawScene(now)
 	
 	var mvp = mat4.create();
 	mat4.multiply(mvp, projection_matrix, view_matrix);
-	ProjectText(vec4.fromValues(2 * textCanvas.width - 100, 100, 0, 1), mvp, ctx, "Ball: " + 
+	ProjectText(vec4.fromValues(2 * textCanvas.width - 100, 4 * top_margin, 0, 1), mvp, ctx, "Ball: " + 
 		ball.position.x.toFixed(2).toString().padStart(7) + " , " + 
 		ball.position.y.toFixed(2).toString().padStart(7), "right");
 

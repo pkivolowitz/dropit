@@ -155,6 +155,12 @@
 		ctx.font = "32px monospace";
 		ctx.textBaseline = "middle";
 		ctx.fillStyle = "#ffffff";
+		ctx.textAlign = "left";
+		ctx.fillText("Drop It! v 0.2", 20, 40);
+		ctx.textAlign = "right";
+		ctx.fillText("While reset:      Click on body to select", ctx.canvas.width - 40, 40);
+		ctx.fillText("Arrow keys (+ shift) to move", ctx.canvas.width - 40, 80);
+		ctx.fillText("r / R (+ ctrl) to rotate bumper", ctx.canvas.width - 40, 120);
 
 		document.addEventListener('keydown', function(event) 
 			{
