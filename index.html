@@ -3,7 +3,7 @@
 	<head>
 	</head>
 	<body style="margin: 0; background-color: black;">
-		<canvas id = "glcanvas" style="border-style: solid; margin: 0; padding: 0; z-index: 20; position: absolute;">Support for the canvas element is required.</canvas>
+		<canvas id = "glcanvas" style="border-style: solid; margin: 0; padding: 0; z-index: 20; position: absolute; z-index: 0">Support for the canvas element is required.</canvas>
 		<canvas id = "textcanvas" style="border-style: solid; margin: 0; padding: 0; top: 0px; left: 0px; z-index: 10; position: absolute;"></canvas>
 		<script src='gl-matrix-min.js'></script>
 		<script src='matter.min.js'></script>
@@ -69,8 +69,21 @@
 			ctx.fillText(text, c[0], c[1]);
 		}
 
+		function ResetBall(body)
+		{
+			Body.setPosition(body, Vector.create(ball_drop_location[0], ball_drop_location[1]));
+			Body.setVelocity(body, Vector.create(0, 0));
+			Body.setAngularVelocity(body, 0);
+			Body.setStatic(body, true);
+		}
+
 		function DrawScene(now)
 		{
+			if (last_time_updated == 0)
+				last_time_updated = now;
+
+			Engine.update(engine, now - last_time_updated);
+			last_time_updated = now;
 			var bodies = Composite.allBodies(engine.world);
 			var projection_matrix = mat4.create();
 			var model_matrix = mat4.create();
@@ -79,14 +92,16 @@
 			var p = vec4.create();
 			var c = vec2.create();
 
-			now = now / 1000;
-			//ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+			ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+			ctx.textAlign = "left";
+			ctx.fillText("Drop It! v 0.1", 20, 50);
+
 			gl.clearColor(0.1, 0.1, 0.1, 1.0);
 			gl.clear(gl.COLOR_BUFFER_BIT);
 			gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
 
 			mat4.lookAt(view_matrix, vec3.fromValues(0.0, 0.0, 10.0), vec3.fromValues(0.0, 0.0, 0.0), y_axis);
-			mat4.ortho(projection_matrix, 0, canvas.width, 0, canvas.height, near_plane, far_plane);
+			mat4.ortho(projection_matrix, 0, 2 * canvas.width, 2 * canvas.height, 0, near_plane, far_plane);
 
 			for (var body_index = 0; body_index < bodies.length; body_index++)
 			{
@@ -94,11 +109,9 @@
 				mat4.scale(model_matrix, model_matrix, vec3.fromValues(1, -1, 1));
 				var body = bodies[body_index];
 				var pos = body.position;
-				if (pos.y < -150) 
+				if (pos.y > 2 * textCanvas.height || pos.x < -10) 
 				{
-					Body.setPosition(bodies[body_index], Vector.create(400, 1000));
-					Body.setVelocity(bodies[body_index], Vector.create(0, 0));
-					Body.setAngularVelocity(bodies[body_index], 0);
+					this.ResetBall(body);
 				}
 				mat4.translate(model_matrix, model_matrix, vec3.fromValues(pos.x, -pos.y, 0));
 				mat4.rotate(model_matrix, model_matrix, -body.angle, z_axis);
@@ -112,6 +125,12 @@
 				}
 			}
 			
+			var mvp = mat4.create();
+			mat4.multiply(mvp, projection_matrix, view_matrix);
+			ProjectText(vec4.fromValues(2 * textCanvas.width - 100, 100, 0, 1), mvp, ctx, "Ball: " + 
+				ball.position.x.toFixed(2).toString().padStart(7) + " , " + 
+				ball.position.y.toFixed(2).toString().padStart(7), "right");
+
 			requestAnimationFrame(DrawScene);
 		}
 
@@ -129,22 +148,24 @@
 		canvas.width = textCanvas.width = window.innerWidth - 10;
 		canvas.height = textCanvas.height = window.innerHeight - 10;
 		var aspect = canvas.width / canvas.height;
-
+		var last_time_updated = 0;
 		var x_axis = vec3.fromValues(1, 0, 0);
 		var y_axis = vec3.fromValues(0, 1, 0);
 		var z_axis = vec3.fromValues(0, 0, 1);
 		var ball_radius = 50;
 		var near_plane = 1;
 		var far_plane = 100;
+		var Events = Matter.Events
 		var Render = Matter.Render;
 		var Engine = Matter.Engine;
 		var Bodies = Matter.Bodies;
 		var Body = Matter.Body;
 		var World = Matter.World;
 		var Vector = Matter.Vector;
+		var Mouse = Matter.Mouse;
 		var Composite = Matter.Composite;
+		var MouseConstraint = Matter.MouseConstraint;
 		var engine = Engine.create();
-		engine.world.gravity.y *= -1;
 
 		var render = Render.create({
 				element: document.body,
@@ -157,7 +178,7 @@
 				}
 			});
 
-		var box_sizes = [ [300, 50], [600, 50], [900, 50] ];
+		var box_sizes = [ [300, 50], [600, 50], [1000, 50] ];
 		var boxes = [ ];
 		box_sizes.forEach(InitBox);
 		var solid_disc = new Disc();
@@ -165,40 +186,110 @@
 		solid_disc.Initialize(ball_radius, 0.0, vec3.fromValues(0,0,0), vec3.fromValues(0,0,0), 0, 360, 32, 1)
 		disc_rim.Initialize(ball_radius, ball_radius - 5, vec3.fromValues(0,0,0), vec3.fromValues(0,0,0), 0, 360, 32, 1);
 
-		var ground3 = Bodies.rectangle(1700, 830, boxes[1].width, boxes[1].height, {isStatic: true});
+		var ground3 = Bodies.rectangle(2300, 1900, boxes[2].width, boxes[2].height, {isStatic: true});
 		ground3.restitution = 1;
-		ground3.size_id = 1;
+		ground3.size_id = 2;
 		ground3.label = 'rect';
 		ground3.friction = 0;
-		Body.rotate(ground3, Radians(90));
+		ground3.frictionAir = 0;
+		ground3.frictionStatic = 0;
+		Body.rotate(ground3, -Radians(30));
 
-		var ground2 = Bodies.rectangle(1400, 400, boxes[1].width, boxes[1].height, {isStatic: true});
+		var ground2 = Bodies.rectangle(1400, 2200, boxes[2].width, boxes[2].height, {isStatic: true});
 		ground2.restitution = 1;
-		ground2.size_id = 1;
+		ground2.size_id = 2;
 		ground2.label = 'rect';
 		ground2.friction = 0;
-		Body.rotate(ground2, 0.4);
+		ground2.frictionAir = 0;
+		ground2.frictionStatic = 0;
+		//Body.rotate(ground2, -0.4);
 		
-		var ground1 = Bodies.rectangle(450, 250, boxes[2].width, boxes[2].height, {isStatic: true});
+		var ground1 = Bodies.rectangle(500, 1900, boxes[2].width, boxes[2].height, {isStatic: true});
 		ground1.label = 'rect';
 		ground1.restitution = 1;
 		ground1.size_id = 2;
 		ground1.friction = 0;
-		Body.rotate(ground1, -0.35);
+		ground1.frictionAir = 0;
+		ground1.frictionStatic = 0;
+		Body.rotate(ground1, Radians(30));
 
-		var ball = Bodies.circle(200, 1000, ball_radius);
+		var ball_drop_location = vec2.fromValues(200, 1000);
+		var ball = Bodies.circle(ball_drop_location[0], ball_drop_location[1], ball_radius);
 		ball.restitution = 1;
 		ball.frictionAir = 0;
 		ball.label = 'ball';
 		ball.friction = 0;
+		ball.isStatic = true;
+		ball.frictionStatic = 0;
 
 		World.add(engine.world, [ ground2, ground1, ground3, ball ]);
-		Engine.run(engine);
-		//Render.run(render);
 
-		ctx.font = "32px Helvetica";
+		var my_mouse = Mouse.create(canvas);
+		my_mouse.pixelRatio = 0.5;
+
+		var mouse_options = {
+			mouse: my_mouse
+		}
+
+		var mouse_constraint = MouseConstraint.create(engine, mouse_options);
+		World.add(engine.world, mouse_constraint);
+		Events.on(mouse_constraint, 'mousedown', function(event) {
+			var mousePosition = event.mouse.position;
+			//if (mouse_constraint.body)
+			//	alert(mouse_constraint.body.label + ' mousedown at ' + mousePosition.x + ' ' + mousePosition.y);
+			mouse_constraint.body = null;
+		});
+		//Engine.run(engine);
+
+		ctx.font = "32px monospace";
 		ctx.textBaseline = "middle";
 		ctx.fillStyle = "#ffffff";
+
+		document.addEventListener('keydown', function(event) 
+			{
+				// http://keycode.info/ is a useful resource for identifying keycode numbers.
+				var scalar = (event.shiftKey) ? 10 : 1;
+				switch (event.keyCode)
+				{
+					case 82: // R eset
+						ResetBall(ball);
+						break;
+
+					case 39: // right
+						if (ball.isStatic == true) {
+							ball_drop_location[0] += 10 * scalar;
+							Body.setPosition(ball, Vector.create(ball_drop_location[0], ball_drop_location[1]));
+						}
+						break;
+
+					case 37: // left
+						if (ball.isStatic == true) {
+							ball_drop_location[0] -= 10 * scalar;
+							Body.setPosition(ball, Vector.create(ball_drop_location[0], ball_drop_location[1]));
+						}
+						break;
+
+					case 40: // down
+						if (ball.isStatic == true) {
+							ball_drop_location[1] += 10 * scalar;
+							Body.setPosition(ball, Vector.create(ball_drop_location[0], ball_drop_location[1]));
+						}
+						break;
+
+					case 38: // up
+						if (ball.isStatic == true) {
+							ball_drop_location[1] -= 10 * scalar;
+							Body.setPosition(ball, Vector.create(ball_drop_location[0], ball_drop_location[1]));
+						}
+						break;
+
+					case 13:
+						Body.setStatic(ball, false);
+						break;
+
+				}
+			}
+		)
 
 		requestAnimationFrame(DrawScene);
 

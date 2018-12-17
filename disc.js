@@ -75,7 +75,6 @@ class Disc
 			for (var slc = 0; slc < real_slices; slc++)
 			{
 				var v = slc / slices;
-				console.log(slc + ' ' + v);
 				vec3.transformMat4(p, x, r);
 				vec3.add(p, p, center);
 				PushVertex(this.triangle_vrts, p);
