@@ -53,7 +53,7 @@ function DrawScene(now)
 
 	ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 	ctx.textAlign = "left";
-	ctx.fillText("Drop It! v 0.1", 20, 50);
+	ctx.fillText("Drop It! v 0.2", 20, 50);
 
 	gl.clearColor(0.1, 0.1, 0.1, 1.0);
 	gl.clear(gl.COLOR_BUFFER_BIT);
@@ -74,7 +74,7 @@ function DrawScene(now)
 		}
 		mat4.translate(model_matrix, model_matrix, vec3.fromValues(pos.x, -pos.y, 0));
 		mat4.rotate(model_matrix, model_matrix, -body.angle, z_axis);
-		var fill_color = body.is_selected ? selected_fill : unselected_fill;
+		var fill_color = body == (selected_body) ? selected_fill : unselected_fill;
 		if (body.label == 'rect') {
 			boxes[body.size_id].Draw(
 				model_matrix, 

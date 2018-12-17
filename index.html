@@ -51,9 +51,16 @@
 			boxes.push(box);
 		}
 
-		function ResetSelected(item)
+		function UpdateBall(x, y)
 		{
-			item.is_selected = false;
+			ball_drop_location[0] += x;
+			ball_drop_location[1] += y;
+			Body.setPosition(ball, Vector.create(ball_drop_location[0], ball_drop_location[1]));
+		}
+
+		function UpdateBumper(body, x, y)
+		{
+			Body.setPosition(body, Vector.create(body.position.x + x, body.position.y + y));
 		}
 
 		var canvas = document.getElementById('glcanvas');
@@ -81,6 +88,7 @@
 		var Composite = Matter.Composite;
 		var MouseConstraint = Matter.MouseConstraint;
 		var engine = Engine.create();
+		var selected_body = {};
 		var box_sizes = [ [300, 50], [600, 50], [1000, 50] ];
 		var boxes = [ ];
 		box_sizes.forEach(InitBox);
@@ -110,22 +118,18 @@
 		var bumper_size = 1;
 		var ground3 = Bodies.rectangle(2300, 1900, boxes[bumper_size].width, boxes[bumper_size].height, bumper_options);
 		ground3.size_id = bumper_size;
-		ground3.is_selected = false;
 		Body.rotate(ground3, -Radians(45));
 
 		var ground2 = Bodies.rectangle(1400, 2200, boxes[bumper_size].width, boxes[bumper_size].height, bumper_options);
 		ground2.size_id = bumper_size;
-		ground2.is_selected = false;
 		//Body.rotate(ground2, -0.4);
 		
 		var ground1 = Bodies.rectangle(500, 1900, boxes[bumper_size].width, boxes[bumper_size].height, bumper_options);
 		ground1.size_id = bumper_size;
-		ground1.is_selected = false;
 		Body.rotate(ground1, Radians(45));
 
 		var ball_drop_location = vec2.fromValues(200, 1000);
 		var ball = Bodies.circle(ball_drop_location[0], ball_drop_location[1], ball_radius, ball_options);
-		ball.is_selected = false;
 
 		World.add(engine.world, [ ground2, ground1, ground3, ball ]);
 
@@ -142,8 +146,7 @@
 			var mousePosition = event.mouse.position;
 			if (mouse_constraint.body)
 			{
-				Composite.allBodies(engine.world).forEach(ResetSelected);
-				mouse_constraint.body.is_selected = true;
+				selected_body = mouse_constraint.body;
 			}
 			mouse_constraint.body = null;
 		});
@@ -157,48 +160,70 @@
 			{
 				// http://keycode.info/ is a useful resource for identifying keycode numbers.
 				var scalar = (event.shiftKey) ? 10 : 1;
+				var rotator = (event.shiftKey) ? 5 : 1;
+
 				switch (event.keyCode)
 				{
-					case 82: // R eset
+					case 82: // R otate
+						if (ball.isStatic == true)
+						{
+							if (event.ctrlKey)
+								rotator = -rotator;
+							if (selected_body != ball)
+								Body.rotate(selected_body, Radians(rotator));
+						}
+						break;
+
+					case 83: // reSet
 						ResetBall(ball);
 						break;
 
 					case 39: // right
 						if (ball.isStatic == true) {
-							ball_drop_location[0] += 10 * scalar;
-							Body.setPosition(ball, Vector.create(ball_drop_location[0], ball_drop_location[1]));
+							if (selected_body == ball) 
+								UpdateBall(10 * scalar, 0);
+							else
+								UpdateBumper(selected_body, 10 * scalar, 0);
 						}
 						break;
 
 					case 37: // left
 						if (ball.isStatic == true) {
-							ball_drop_location[0] -= 10 * scalar;
-							Body.setPosition(ball, Vector.create(ball_drop_location[0], ball_drop_location[1]));
+							if (selected_body == ball)
+								UpdateBall(-10 * scalar, 0);
+							else
+								UpdateBumper(selected_body, -10 * scalar, 0);
 						}
 						break;
 
 					case 40: // down
 						if (ball.isStatic == true) {
-							ball_drop_location[1] += 10 * scalar;
-							Body.setPosition(ball, Vector.create(ball_drop_location[0], ball_drop_location[1]));
+							if (selected_body == ball)
+								UpdateBall(0, 10 * scalar);
+							else
+								UpdateBumper(selected_body, 0, 10 * scalar);
 						}
 						break;
 
 					case 38: // up
 						if (ball.isStatic == true) {
-							ball_drop_location[1] -= 10 * scalar;
-							Body.setPosition(ball, Vector.create(ball_drop_location[0], ball_drop_location[1]));
+							if (selected_body == ball)
+								UpdateBall(0, -10 * scalar);
+							else
+								UpdateBumper(selected_body, 0, -10 * scalar);
 						}
 						break;
 
 					case 13:
 						Body.setStatic(ball, false);
+						Body.setVelocity(ball, Vector.create(0, 20));
 						break;
 
 				}
 			}
 		)
 
+		selected_body = ball;
 		requestAnimationFrame(DrawScene);
 
 		</script>
